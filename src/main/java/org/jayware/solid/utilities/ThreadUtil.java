@@ -1,5 +1,5 @@
 /**
- * Skyshard Engine -- A 3D game engine written in Java
+ * Solid Utilities -- A collection of utility classes.
  *
  * Copyright (C) 2016 Markus Neubauer <markus.neubauer@jayware.org>,
  *                    Alexander Haumann <alexander.haumann@jayware.org>,
@@ -7,14 +7,14 @@
  *                    Marina Schilling <marina.schilling@jayware.org>,
  *                    Elmar Schug <elmar.schug@jayware.org>,
  *
- *     This file is part of the Skyshard Engine.
+ *     This file is part of Solid Utilities.
  *
- *     The Skyshard Engine is free software; you can redistribute it and/or
+ *     Solid Utilities is free software; you can redistribute it and/or
  *     modify it under the terms of the GNU Lesser General Public License
  *     as published by the Free Software Foundation, either version 3 of
  *     the License, or any later version.
  *
- *     The Skyshard Engine is distributed in the hope that it will be useful,
+ *     Solid Utilities is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  *     Lesser General Public License for more details.
@@ -22,7 +22,7 @@
  *     You should have received a copy of the GNU Lesser General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jayware.e2.util;
+package org.jayware.solid.utilities;
 
 
 import java.lang.management.ManagementFactory;

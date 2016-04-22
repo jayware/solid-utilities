@@ -31,7 +31,7 @@ findbugs {
 }
 
 license {
-    header rootProject.file('HEADER.txt')
+    header file('HEADER.txt')
     ext.year = Calendar.getInstance().get(Calendar.YEAR)
     skipExistingHeaders = true
     include '**/*.java'
