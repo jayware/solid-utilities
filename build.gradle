@@ -42,8 +42,22 @@ license {
 
 
 bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
+    user = System.getProperty('bintray.user')
+    key = System.getProperty('bintray.key')
+    pkg {
+        repo = 'maven'
+        name = 'solid-utilities'
+        userOrg = 'jayware'
+        licenses = ['LGPL-3.0']
+        vcsUrl = 'https://github.com/jayware/solid-utilities'
+        version {
+            name = project.version
+            desc = 'A collection of common utility classes.'
+            released  = new Date()
+            vcsTag = project.version
+        }
+    }
+    publications = ['main']
 }
 
 task coveralls(type:Exec, dependsOn: 'generateCoverallsPom') {
@@ -136,7 +150,7 @@ artifacts {
 
 publishing {
     publications {
-        "${project.name}"(MavenPublication) {
+        'main'(MavenPublication) {
             from components.java
             artifact sourcesJar
             artifact javadocJar
