@@ -4,11 +4,14 @@ plugins {
 }
 
 apply plugin: 'java'
+apply plugin: 'osgi'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'findbugs'
 apply plugin: 'license'
+
+group = 'org.jayware'
 
 
 repositories {
@@ -35,6 +38,154 @@ license {
     ext.year = Calendar.getInstance().get(Calendar.YEAR)
     skipExistingHeaders = true
     include '**/*.java'
+}
+
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+}
+
+task coveralls(type:Exec, dependsOn: 'generateCoverallsPom') {
+    commandLine 'mvn', 'clean', 'install', 'test', 'jacoco:report', 'coveralls:report'
+}
+
+task generateCoverallsPom << {
+    pom {
+        project {
+            groupId project.group
+            artifactId project.name
+            version project.version
+        }
+        withXml {
+            def root = asNode()
+            def properties = root.appendNode('properties')
+            properties.appendNode('project.build.sourceEncoding', 'UTF-8')
+            def build = root.appendNode('build')
+            def plugins = build.appendNode('plugins')
+            def jacoco = plugins.appendNode('plugin')
+            jacoco.appendNode('groupId', 'org.jacoco')
+            jacoco.appendNode('artifactId', 'jacoco-maven-plugin')
+            jacoco.appendNode('version', '0.7.6.201602180812')
+            def executions = jacoco.appendNode('executions')
+            def execution = executions.appendNode('execution')
+            execution.appendNode('id', 'prepare-agent')
+            def goals = execution.appendNode('goals')
+            goals.appendNode('goal', 'prepare-agent')
+            def coveralls = plugins.appendNode('plugin')
+            coveralls.appendNode('groupId', 'org.eluder.coveralls')
+            coveralls.appendNode('artifactId', 'coveralls-maven-plugin')
+            coveralls.appendNode('version', '4.1.0')
+            def configuration = coveralls.appendNode('configuration')
+            configuration.appendNode('repoToken', '${env.COVERALLS_REPO_TOKEN}')
+            def javac = plugins.appendNode('plugin')
+            javac.appendNode('groupId', 'org.apache.maven.plugins')
+            javac.appendNode('artifactId', 'maven-compiler-plugin')
+            javac.appendNode('version', '3.5.1')
+            configuration = javac.appendNode('configuration')
+            configuration.appendNode('source', '1.8')
+            configuration.appendNode('target', '1.8')
+            def dependencies = root.getAt('dependencies')[0]
+            project.configurations.compileOnly.resolvedConfiguration.getResolvedArtifacts().each { artifact ->
+                def dependency = dependencies.appendNode('dependency')
+                dependency.appendNode('groupId', artifact.moduleVersion.id.group)
+                dependency.appendNode('artifactId', artifact.moduleVersion.id.name)
+                dependency.appendNode('version', artifact.moduleVersion.id.version)
+                dependency.appendNode('scope', 'provided')
+            }
+        }
+    }.writeTo('pom.xml')
+}
+
+clean{
+    delete 'pom.xml'
+}
+
+jar {
+    from (rootProject.projectDir) {
+        include "LICENSE.txt"
+    }
+    from (projectDir) {
+        include 'README.md', 'RELEASES.md'
+    }
+    manifest {
+        vendor 'jayware.org'
+        name "${project.group}:${project.name}"
+        description "${project.description}"
+        symbolicName "${project.group}.${project.name.replace('-', '.')}"
+        license "${project.licenseUrl}"
+        instruction 'Bundle-Category', "${project.bundleCategory}"
+        instruction 'Bundle-RequiredExecutionEnvironment', 'JavaSE-1.8'
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+publishing {
+    publications {
+        "${project.name}"(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            groupId project.group
+            artifactId project.name
+            version project.version
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('name', "${project.group}:${project.name}")
+                root.appendNode('description', project.description)
+                root.appendNode('url', 'http://jayware.github.io/solid-utilities/')
+                root.appendNode('inceptionYear', '2016')
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', project.website)
+                scm.appendNode('connection', project.vcsUrl)
+                scm.appendNode('developerConnection', project.vcsUrl)
+                def developers = root.appendNode('developers')
+                def dev = developers.appendNode('developer')
+                dev.appendNode('name', 'Elmar Schug')
+                dev.appendNode('email', 'elmar.schug@jayware.org')
+                dev.appendNode('organization', 'JayWare')
+                dev.appendNode('organizationUrl', 'https://jayware.org')
+                dev = developers.appendNode('developer')
+                dev.appendNode('name', 'Markus Neubauer')
+                dev.appendNode('email', 'markus.neubauer@jayware.org')
+                dev.appendNode('organization', 'JayWare')
+                dev.appendNode('organizationUrl', 'https://jayware.org')
+                dev = developers.appendNode('developer')
+                dev.appendNode('name', 'Alexander Haumann')
+                dev.appendNode('email', 'alexander.haumann@jayware.org')
+                dev.appendNode('organization', 'JayWare')
+                dev.appendNode('organizationUrl', 'https://jayware.org')
+                dev = developers.appendNode('developer')
+                dev.appendNode('name', 'Marina Schilling')
+                dev.appendNode('email', 'marina.schilling@jayware.org')
+                dev.appendNode('organization', 'JayWare')
+                dev.appendNode('organizationUrl', 'https://jayware.org')
+                dev = developers.appendNode('developer')
+                dev.appendNode('name', 'Manuel Hinke')
+                dev.appendNode('email', 'manuel.hinke@jayware.org')
+                dev.appendNode('organization', 'JayWare')
+                dev.appendNode('organizationUrl', 'https://jayware.org')
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', project.licenseName)
+                license.appendNode('url', project.licenseUrl)
+                license.appendNode('distribution', 'repo')
+            }
+        }
+    }
 }
 
 task wrapper(type: Wrapper) {
